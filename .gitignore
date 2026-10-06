@@ -1,0 +1,25 @@
+# Only the root placeholder example may be committed.
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!/.env.example
+
+# Local runtime state, keys and logs.
+data/
+state.json
+keys/
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+logs/
+
+# Dependencies and build artifacts.
+node_modules/
+.next/
+*.tsbuildinfo
+.tools/
+.DS_Store
