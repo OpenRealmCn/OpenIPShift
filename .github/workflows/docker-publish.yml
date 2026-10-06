@@ -40,6 +40,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
         run: |
           npm ci
+          npm audit --audit-level=low
           npm run typecheck
           npm run build
 
@@ -78,6 +79,12 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=sha-
             type=ref,event=pr
+      - name: Smoke standalone images before publishing
+        if: matrix.component == 'frontend'
+        run: |
+          docker build -t openipshift-backend:security-upgrade ./backend
+          docker build -t openipshift-frontend:security-upgrade ./frontend
+          python3 scripts/smoke-docker.py
       - name: Build and optionally push
         id: build
         uses: docker/build-push-action@v6

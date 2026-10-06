@@ -4,10 +4,11 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Runtime server-only setting. Never bake access tokens or backend URLs into browser JS.
-async function proxy(request: NextRequest, { params }: { params: { path: string[] } }) {
+async function proxy(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const base = process.env.API_INTERNAL_URL || 'http://127.0.0.1:8080';
   const target = new URL(base);
-  target.pathname = '/api/' + params.path.map(encodeURIComponent).join('/');
+  const { path } = await params;
+  target.pathname = '/api/' + path.map(encodeURIComponent).join('/');
   target.search = request.nextUrl.search;
   const headers = new Headers();
   for (const name of ['authorization', 'content-type', 'idempotency-key']) {

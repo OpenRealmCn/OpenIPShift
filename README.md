@@ -100,7 +100,17 @@ The API is intentionally minimal and has bearer-token authentication only. Keep 
 
 From `backend`, run `go test ./...` and `go vet ./...`. Tests cover proxy-failure rollback, durable state reload, idempotency and per-node locking, restart ambiguity, and refusal to release without ownership. From `frontend`, run `npm run typecheck` and `npm run build`.
 
-Use Go 1.22+; if installed under `/tmp/go`, run `/tmp/go/bin/go test ./...` and `/tmp/go/bin/go vet ./...`. The frontend currently uses Next.js 14.2.35.
+Use Go 1.22+; if installed under `/tmp/go`, run `/tmp/go/bin/go test ./...` and `/tmp/go/bin/go vet ./...`.
+
+### Dependency security upgrade (2026-10-06)
+
+The frontend pins **Next.js 16.3.8**, **React / React DOM 19.3.0**, and matching React type definitions **19.3.0**. Next.js brings **PostCSS 8.5.23**. Versions were checked against the live npm registry, not guessed. Next.js 15.5.27 is a maintenance release, but still directly pins vulnerable PostCSS 8.4.31; moving to stable Next.js 16 fixes the dependency tree without an override. Previously: Next.js 14.2.35, React / React DOM 18.3.1, PostCSS 8.4.31.
+
+Live `npm audit` before the upgrade reported **2 vulnerable packages (1 high PostCSS, 1 critical Next.js)**. After a clean `npm ci`, it reports **0 vulnerabilities** across all severities (including development dependencies). This is an npm advisory result, not a full container/OS vulnerability scan. The Node 22 Alpine and Go 1.26 Alpine build bases remain compatible; standalone output and UID/GID 10001 are retained.
+
+Verified locally: clean `npm ci`, `npm audit`, `npm run typecheck`, production `npm run build`, `go test ./...`, `go vet ./...`, both Docker builds, and `python3 scripts/smoke-docker.py`. The Docker smoke uses temporary containers/state and a generated token, then removes them. It checks page HTTP 200/login screen, unauthenticated and wrong-token 401s, initial zero nodes, node CRUD, runtime same-origin proxying, Authorization/JSON/Idempotency-Key forwarding (including repeated rotation idempotency), `no-store` responses, non-root execution, and absence of the token in static assets. It performs mock operations only. It does not replace a real-browser interaction test or implement AWS/DNS adapters.
+
+Next.js route parameters now use the asynchronous `params` API; `typecheck` generates route types first so it also works on a clean checkout. CI enforces `npm audit --audit-level=low` and runs the Docker smoke before the frontend image is published. To reproduce the smoke, build `openipshift-backend:security-upgrade` and `openipshift-frontend:security-upgrade`, then run the script from the repository root; `BACKEND_IMAGE` / `FRONTEND_IMAGE` can select other locally available tags. GHCR availability remains subject to package visibility as described above.
 
 ## Configuration
 
