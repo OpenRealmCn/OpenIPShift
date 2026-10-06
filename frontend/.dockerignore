@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+node_modules
+.next
+*.tsbuildinfo
+data
+state.json
+keys
+*.pem
+*.key
+*.log

@@ -1,0 +1,38 @@
+services:
+  backend:
+    image: ghcr.io/openrealmcn/openipshift-backend:${IMAGE_TAG:-main}
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      LISTEN_ADDR: 0.0.0.0:8080
+      ALLOW_NON_LOOPBACK: "1"
+      STATE_PATH: /data/state.json
+      ROTATOR_API_TOKEN: ${ROTATOR_API_TOKEN:?Set ROTATOR_API_TOKEN in your shell or local .env}
+    volumes:
+      - state:/data
+    networks:
+      - api
+    # No host port: backend is reachable only by the frontend on the private network.
+    security_opt:
+      - no-new-privileges:true
+  frontend:
+    image: ghcr.io/openrealmcn/openipshift-frontend:${IMAGE_TAG:-main}
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_INTERNAL_URL: http://backend:8080
+    ports:
+      - "${BIND_ADDR:-127.0.0.1}:${PORT:-3000}:3000"
+    networks:
+      - api
+      - web
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  state:
+networks:
+  api:
+    internal: true
+  web:

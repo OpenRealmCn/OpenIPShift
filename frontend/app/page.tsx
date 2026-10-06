@@ -6,7 +6,8 @@ type Node = { id: string; name: string; region: string; instance: string; static
 type Task = { id: string; nodeId: string; phase: string; mode: string; releaseAfter: string; events: { at: string; phase: string; message: string }[] };
 type State = { nodes: Node[]; tasks: Record<string, Task> };
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080';
+// Browser requests stay same-origin; only the server knows the backend address.
+const API = '';
 const emptyNode: Node = { id: '', name: '', region: '', instance: '', staticIP: '', dnsName: '', proxyTarget: '' };
 
 export default function Page() {
